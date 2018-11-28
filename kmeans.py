@@ -39,19 +39,38 @@ iris_veri = pd.read_csv("iris.csv") #dosyayı dışardan okuyoruz
 duzenliVeri = iris_veri.drop(["Id"],axis=1)  #dosyada ıd sütunu vardı onu kaldırdım işimize yaramadığı için
 duzenliVeri["Sinif"] = [np.where(duzenliVeri.Species.unique() == each)[0][0] for each in duzenliVeri.Species] # her bir elemanın hangi sınıfa ait olduğunu buluyor ve yeni bir sütuna bunları yazıyorum
 
-colorMap = np.array(["red","green","blue"]) #sınıflarımızın herbirini farklı renkte ifade edebilmek için renk scalası oluşturdum, yapmasaydık aşağıda 3 ayrı subplot yazmak zorundakalacaktık
-plt.subplot(1,2,1) #1,2. konumun 1. elemanını yazıyorum demek, yani 1,2 lik bir grafik olacak ve ben ilkini şimdi çizdiriyorum demek
+colorMap = np.array(["red","green","blue","purple"]) #sınıflarımızın herbirini farklı renkte ifade edebilmek için renk scalası oluşturdum, yapmasaydık aşağıda 3 ayrı subplot yazmak zorundakalacaktık
+plt.subplot(1,3,1) #1,2. konumun 1. elemanını yazıyorum demek, yani 1,2 lik bir grafik olacak ve ben ilkini şimdi çizdiriyorum demek
 plt.scatter(duzenliVeri.PetalLengthCm,duzenliVeri.PetalWidthCm, color=colorMap[duzenliVeri.Sinif]) # gerçek sınıflara göre çizdiriyorum grafiği
 X,clusters,R=k_means(3) #kmeans i hesaplatıyorum
 plt.title("Gerçek Sınıflandırması") # ilk grafiğe isim veriyorum
-plt.subplot(1,2,2) # artık 1.2 nin 2. grafiğini çizdircem demek 
+plt.subplot(1,3,2) # artık 1.2 nin 2. grafiğini çizdircem demek 
 dataFrames = pd.DataFrame(X) # daha rahat işlem yapmak için onu veritabanına benzetiyorum
 clusters=clusters.astype(int) # gelen claster verisi float ama benim colormapim int o yüzden cast işlemi yapıyorum 
 dataFrames["clusters"]=clusters # ve bu clasterları oluşturduğum yeni dataframe e ekliyorum
+dataFrames["clusters"]= [5 if(each==2) else each for each in dataFrames.clusters]
+dataFrames["clusters"]= [2 if(each==1) else each for each in dataFrames.clusters]
+dataFrames["clusters"]= [1 if(each==5) else each for each in dataFrames.clusters]
 dataFrames.columns=["X","Y","cluster"] # sütunlara isim veriyorum
 plt.scatter(dataFrames.X,dataFrames.Y, color=colorMap[dataFrames.cluster]) #yeni grafiği çizdiriyorum
 plt.scatter(R[:, 0], R[:, 1], marker='*', s=200, c='black') # kmeans noktalarını ekrana bastırıyorum
 plt.title('K Mean Sınıflandırması') # 2. grafiğe isim veriyorum
+
+plt.subplot(1,3,3)
+
+hatali=deepcopy(dataFrames)
+
+hatali["cluster"] = [3 if(hatali.cluster[each]!= duzenliVeri.Sinif[each]) else hatali.cluster[each] for each in range(len(hatali.cluster))]
+plt.scatter(hatali.X,hatali.Y, color=colorMap[hatali.cluster])
+plt.scatter(R[:, 0], R[:, 1], marker='*', s=200, c='black')
+
+plt.title('K Mean Hatali Sınıflandırması')
+sayac=0
+for i in hatali.cluster:
+    if(i==3):
+        sayac+=1
+
+plt.xlabel("Başarı orani: % "+str((1-sayac/150)*100))
 plt.show() # tüm grafikleri gösteriyorum
 
 
